@@ -6,16 +6,10 @@ _start:
 	sub     r6, r6, $1    @ decrease to logical size due to argv[0]
 
 	cmp     r6, $0        @ if argv == 0
-	beq     prnl          @ 	goto prnl
+	beq     term          @ 	goto term
 
 	add     sp, sp, $4    @ *sp++ = argv @
 	b       next          @ 	goto next
-prsp:                         @ print space
-	mov     r0, $1        @ r0 = stdout
-	ldr     r1, =sp       @ *sp = ' '
-	mov     r2, $1        @ r2 =len
-	mov     r7, $4        @ write()
-	swi     $0
 next:
 	add     r5, r5, $1    @ counter++
 	add     sp, sp, $4    @ *argv++
@@ -34,13 +28,15 @@ write:
 	swi     $0
 
 	cmp     r5, r6        @ if argc != counter
-	blt     prsp          @ 	goto prsp
-prnl:                         @ print newline
+term:
 	mov     r0, $1        @ r0 = stdout
-	ldr     r1, =nl       @ *nl = '\n'
+	ldrlt   r1, =sp       @ if argc <  counter; r1 = space
+	ldrge   r1, =nl       @ if argc >= counter; r1 = newline
 	mov     r2, $1        @ r2 = len
 	mov     r7, $4        @ write()
 	swi     $0
+
+	blt     next          @ if argc <  counter; next()
 exit:
 	mov     r0, $0        @ r0 = EXIT_SUCCESS
 	mov     r7, $1        @ exit()
