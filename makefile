@@ -3,3 +3,4 @@ ASFLAGS = -g
 
 echo: echo.s
 cat: cat.s
+rm: rm.s
