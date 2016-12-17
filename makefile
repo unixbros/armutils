@@ -1,6 +1,5 @@
 LDFLAGS = --entry _start -nostdlib -static
 ASFLAGS = -g
+CC      = arm-none-eabi-gcc
 
-echo: echo.s
-cat: cat.s
-rm: rm.s
+all: cat echo pwd rm sync

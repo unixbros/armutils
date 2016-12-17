@@ -1,45 +1,55 @@
 @ $armutils: cat.s v 1.0 2016/10/21 16:43:28 dcat Exp $
 
-@ get and parse args
-@ print files;
-@ 	stat() file/get size
-@ 	brk() file size
-@ 	read() file
-@ 	write() to stdout
-
-.globl _start
+.global _start
 _start:
-	ldr     r6, [sp]      @ r6 = argc
-	sub     r6, r6, $1    @ decrease to logical size due to argv[0]
+        ldr   r6, [sp]
+        sub   r6, r6, $1
 
-	cmp     r6, $0        @ if argv == 0
-	beq     exit          @ 	goto exit
+        mov   r0, $1
+        cmp   r6, $0
+        beq   exit
 
-	add     sp, sp, $4    @ *sp++ = argv @
+        add   sp, sp, $4
 next:
-	add     r5, r5, $1    @ counter++
-	add     sp, sp, $4    @ *argv++
-	ldr     r1, [sp]      @ r1 = *argv
+        add   r5, r5, $1
+        add   sp, sp, $4
+        ldr   r0, [sp]
+open:
+        mov   r7, $5
+        mov   r1, $0
+        swi   $0
 
-	ldr     r0, [sp]      @ r0 = *argv
-	mov     r2, $-1       @ argv_counter = -1
+        mov   r8, r0
 stat:
-	mov     r7, $106      @ stat()
-	swi     $0
-brk:
-	mov     r7, $45       @ brk()
-	swi     $0
-read:
-	mov     r7, $3        @ read()
-	swi     $0
-write:
-	mov     r0, $1        @ r0 = stdout
-	mov     r7, $4        @ write()
-	swi     $0
+        mov   r7, $108
+        ldr   r1, =sb
+        swi   $0
 
-	cmp     r5, r6        @ if argc != counter
-	blt     next          @ 	goto next
+1:
+        ldr   r4, =st_size
+        ldr   r3, [r4]
+        mov   r1, r8
+
+output:
+        mov   r7, $187
+        mov   r0, $1
+        mov   r2, $0
+        swi   $0
+close:
+        mov   r7, $6
+        mov   r0, r8
+        swi   $0
+2:
+        cmp   r5, r6
+        ble   next
+        mov   r0, $0
 exit:
-	mov     r0, $0        @ r0 = EXIT_SUCCESS
-	mov     r7, $1        @ exit()
-	swi     $0
+        mov   r7, $1
+        swi   $0
+
+.bss
+sb:
+        __pad0:  .space 20
+        st_size: .space 32
+        __pad1:  .space 76
+
